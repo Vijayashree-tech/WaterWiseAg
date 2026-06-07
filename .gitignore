@@ -1,2 +1,20 @@
-# Virtual environment
+# Environment variables
+backend/.env
+
+# Virtual environments
 venv/
+backend/venv/
+frontend/venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Database
+*.db
+
+# Large dataset
+models/smart_water_predictor_20000_dataset.csv
+
+# VS Code
+.vscode/
