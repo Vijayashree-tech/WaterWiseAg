@@ -10,11 +10,5 @@ frontend/venv/
 __pycache__/
 *.pyc
 
-# Database
-*.db
-
-# Large dataset
-models/smart_water_predictor_20000_dataset.csv
-
 # VS Code
 .vscode/
