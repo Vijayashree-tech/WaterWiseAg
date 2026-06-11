@@ -2093,7 +2093,7 @@ def page_about():
 
     st.markdown("""<div class="green-card" style="text-align:center">
         <div style="font-size:32px;margin-bottom:8px">🙏</div>
-        <div style="font-size:16px;font-weight:700;color:#1a4d2e">Built with love for Indian Farmers</div>
+        <div style="font-size:16px;font-weight:700;color:#1a4d2e">Built with respect for Indian Farmers</div>
         <div style="margin-top:14px;font-size:12px;color:#4a7a55">© 2025 Crop Water Planner · Made in India 🇮🇳</div>
     </div>""", unsafe_allow_html=True)
 
