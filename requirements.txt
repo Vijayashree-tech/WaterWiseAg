@@ -6,3 +6,6 @@ requests
 numpy
 scikit-learn
 joblib
+streamlit
+requests
+deep-translator
