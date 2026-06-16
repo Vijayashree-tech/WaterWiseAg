@@ -19,7 +19,7 @@ if "last_result"   not in st.session_state: st.session_state.last_result   = Non
 if "weather"       not in st.session_state: st.session_state.weather       = None
 
 
-FLASK_BACKEND_URL   = "http://127.0.0.1:5000"
+FLASK_BACKEND_URL   = "https://waterwiseag.onrender.com"
 
 # ─────────────────────────────────────────────────────────────────────
 # CSS + BOTANICAL BACKGROUND
