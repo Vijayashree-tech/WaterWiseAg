@@ -30,25 +30,35 @@ ml_model = joblib.load(MODEL_PATH)
 def home():
     return "Backend is running!"
 
-# ------------------------
-# Prediction Route
-# ------------------------
+
 @app.route("/predict", methods=["POST"])
 def predict():
+    print("PREDICT ROUTE HIT")
     data = request.get_json()
 
     try:
-        # Validate required fields
         required_fields = [
-            "land_area", "temperature", "humidity",
-            "rainfall", "wind_speed",
-            "soil_type", "crop_type", "crop_stage", "season"
+            "land_area",
+            "temperature",
+            "humidity",
+            "rainfall",
+            "wind_speed",
+            "soil_type",
+            "crop_type",
+            "crop_stage",
+            "season",
         ]
 
         for field in required_fields:
             if field not in data:
-                return jsonify({"error": f"Missing field: {field}"}), 400
+                return jsonify({
+                    "error": f"Missing field: {field}"
+                }), 400
 
+        # ----------------------------
+        # Prepare Model Input
+        # Column names must match exactly what the model was trained on
+        # ----------------------------
         features_dict = {
             "Land_Area_acres": float(data["land_area"]),
             "Temperature_C": float(data["temperature"]),
@@ -58,21 +68,84 @@ def predict():
             "Soil_Type": data["soil_type"],
             "Crop_Type": data["crop_type"],
             "Crop_Stage": data["crop_stage"],
-            "Season": data["season"]
+            "Season": data["season"],
         }
 
         features_df = pd.DataFrame([features_dict])
 
-        prediction = ml_model.predict(features_df)[0]
+        # ----------------------------
+        # ML Prediction
+        # Model is trained on a realistic litres/day target
+        # (rescaled to ~15,000-60,000 L/acre/day; see train_model.py)
+        # ----------------------------
+        prediction = float(ml_model.predict(features_df)[0])
+        water_required_liters = round(max(0.0, prediction), 1)
 
+        # ----------------------------
+        # Irrigation Level
+        # Thresholds set from the rescaled training data's
+        # 33rd / 66th percentiles so Low/Medium/High are each
+        # genuinely represented, not collapsed into one bucket.
+        # ----------------------------
+        if water_required_liters < 90000:
+            irrigation_level = "Low"
+            confidence = 85
+        elif water_required_liters < 180000:
+            irrigation_level = "Medium"
+            confidence = 90
+        else:
+            irrigation_level = "High"
+            confidence = 95
+
+        # ----------------------------
+        # Explanation Engine
+        # ----------------------------
+        reasons = []
+
+        temp = float(data["temperature"])
+        humidity = float(data["humidity"])
+        rainfall = float(data["rainfall"])
+        wind = float(data["wind_speed"])
+
+        if temp > 35:
+            reasons.append("High temperature increases crop water demand")
+
+        if rainfall < 5:
+            reasons.append("Low rainfall detected")
+
+        if humidity < 50:
+            reasons.append("Low humidity increases evaporation")
+
+        if wind > 15:
+            reasons.append("High wind speed may increase water loss")
+
+        if irrigation_level == "High":
+            reasons.append("Crop requires higher irrigation under current conditions")
+
+        if not reasons:
+            reasons.append("Weather conditions are favorable for crop growth")
+
+        # ----------------------------
+        # Response
+        # ----------------------------
         return jsonify({
-            "water_required": round(float(prediction), 2)
+            "water_required_liters": water_required_liters,
+            "irrigation_level": irrigation_level,
+            "confidence": confidence,
+            "weather_used": {
+                "temperature": temp,
+                "humidity": humidity,
+                "rainfall": rainfall,
+                "wind_speed_kmph": wind,
+            },
+            "explanation": reasons,
         }), 200
 
     except Exception as e:
         return jsonify({
             "error": f"Prediction failed: {str(e)}"
         }), 500
+
 
 # ------------------------
 # Report Route
@@ -85,6 +158,7 @@ def generate_report():
         return jsonify({"error": "Report not found"}), 404
 
     return send_file(report_path, as_attachment=True)
+
 
 # ------------------------
 # Weather Route
@@ -103,6 +177,7 @@ def weather(city):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # ------------------------
 # Run Flask App

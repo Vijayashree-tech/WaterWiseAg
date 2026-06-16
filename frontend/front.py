@@ -19,7 +19,7 @@ if "last_result"   not in st.session_state: st.session_state.last_result   = Non
 if "weather"       not in st.session_state: st.session_state.weather       = None
 
 
-FLASK_BACKEND_URL   = "https://waterwiseag.onrender.com"
+FLASK_BACKEND_URL   = "http://127.0.0.1:5000"
 
 # ─────────────────────────────────────────────────────────────────────
 # CSS + BOTANICAL BACKGROUND
@@ -1788,17 +1788,26 @@ Live Dashboard
                 }
                 response = requests.post(f"{FLASK_BACKEND_URL}/predict", json=payload)
                 result   = response.json()
-                if "water_required" in result:
+                if "water_required_liters" in result:
                     st.session_state.last_result = {
-                        "crop": selected_crop, "land": land, "soil": soil,
-                        "stage": stage, "season": season, "city": location,
-                        "temperature": wx["temperature"], "humidity": wx["humidity"],
-                        "rainfall": wx["rainfall"], "wind_speed": wx["wind_speed"],
-                        "water_need": result["water_required"]
+                        "crop": selected_crop,
+                        "land": land,
+                        "soil": soil,
+                        "stage": stage,
+                        "season": season,
+                        "city": location,
+                        "temperature": wx["temperature"],
+                        "humidity": wx["humidity"],
+                        "rainfall": wx["rainfall"],
+                        "wind_speed": wx["wind_speed"],
+                        "water_need": result["water_required_liters"],
+                        "irrigation_level": result["irrigation_level"],
+                        "confidence": result["confidence"],
+                        "explanation": result["explanation"]
                     }
                     st.success("✅ Prediction Completed")
                 else:
-                    st.error(result.get("message","Unknown error"))
+                    st.error(result.get("error", "Unknown error"))
         except Exception as e:
             st.error(f"❌ Error: {e}")
 
