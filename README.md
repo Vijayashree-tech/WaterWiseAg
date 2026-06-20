@@ -113,7 +113,7 @@ WATERWISEAG
 ├── models
 │   ├── model.pkl
 │   ├── train_model.py
-│   └── smart_water_prediction.csv
+│   └── smart_water_predictor_20000_dataset_rescaled.csv
 │
 ├── requirements.txt
 └── .gitignore
